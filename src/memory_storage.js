@@ -9,5 +9,5 @@ let storage = {
             title: "Porec galerija",
         },
     ]
-   }
+}
 export default storage;
