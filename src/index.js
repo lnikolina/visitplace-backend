@@ -1,44 +1,25 @@
-//req - u sebi zadrzi dodatne informacije
-//req.query - objekt koji sadrži sve parametre
-//res - ispis u browser ide preko res , .send ispisuje string
+import express from "express";
+import dotenv from "dotenv";
+import cors from "cors";
+import dbConnect from "./config/db";
 
-import storage from "./memory_storage"
-import express from 'express'
+// pronadi .env file ako postoji
+dotenv.config();
 
-const app = express()
-const port = 3000 
+const app = express();
 
-app.get('/post', (req, res) => {
-    let posts = storage.posts 
-    let query = req.query
+// cors omogućuje pozive prema backend-u s bilo koje IP adrese klijenta
+app.use(cors());
 
-    if (query.title) {
-        posts = posts.fillter(e.title.indexOf (query.title) >= 0)
-    }
-    if (query.createBy) {
-        posts = posts.fillter(e.createBy.indexOf (query.createBy) >= 0)
-    }
+// spajanje na bazu
+dbConnect();
 
-    if (query._any) {
-        let terms = query._any.split(" ")
-        posts = posts.fillter(doc => {
-            let info = doc.title + " " + doc.createBy
-            return terms.every(term => info.indexOf(term) >= 0)
-        })
-    }
-    res.json(posts)
-})
+// uzimanje porta iz varijabli okruženja ( .env file )
+const port = process.env.PORT || 3000;
 
-app.get('/', (req, res) => {
+// test ruta
+app.get("/", (req, res) => {
+	return res.send("<h1>Hello world</h1>");
+});
 
-    let postovi = storage.post
-
-    res.send('Suma je: ${suma} ') 
-    console.log('Hello world') 
-}) 
-
-app.listen(port, () => console.log('Slušam na portu ${port} ' )) 
-
-
-
-
+app.listen(port, () => console.log(`Slušam na portu ${port}`));
