@@ -154,4 +154,24 @@ app.post("/posts", verify, async (req, res) => {
 	}
 });
 
+app.get("/posts", verify, async (req, res) => {
+	try {
+		const posts = await Post.find({});
+
+		res.json(posts);
+	} catch (error) {
+		res.status(500).json({ msg: "Server Error" });
+	}
+});
+
+app.get("/posts/me", verify, async (req, res) => {
+	try {
+		const posts = await Post.find({ user: req.currentUser.userID });
+
+		res.json(posts);
+	} catch (error) {
+		res.status(500).json({ msg: "Server Error" });
+	}
+});
+
 app.listen(port, () => console.log(`Slušam na portu ${port}`));
