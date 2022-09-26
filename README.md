@@ -1,3 +1,5 @@
+Made for Web Application course.
+
 # VisitPlace - backend web application
 
 Frontend: https://github.com/lnikolina/visitplace-frontend.git
