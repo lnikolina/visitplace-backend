@@ -6,6 +6,7 @@ import * as EmailValidator from "email-validator";
 import User from "./models/User";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import verify from "./middleware/verify";
 
 // pronadi .env file ako postoji
 dotenv.config();
@@ -77,7 +78,6 @@ app.post("/user", async (req, res) => {
 		res.json({ token });
 	} catch (error) {
 		res.status(500).send("Server Error");
-		console.log(error.message);
 	}
 });
 
@@ -115,8 +115,17 @@ app.post("/auth", async (req, res) => {
 		});
 		res.json({ token });
 	} catch (error) {
-		console.log(error);
 		res.status(500).send("Server Error");
+	}
+});
+
+app.get("/user", verify, async (req, res) => {
+	try {
+		// hvatanje podataka trenutnog korisnika
+		const user = await User.findById(req.currentUser.userID);
+		res.json(user);
+	} catch (error) {
+		res.status(500).json({ msg: "Server Error" });
 	}
 });
 
