@@ -174,4 +174,29 @@ app.get("/posts/me", verify, async (req, res) => {
 	}
 });
 
+app.delete("/posts/:id", verify, async (req, res) => {
+	const { id } = req.params;
+
+	try {
+		const post = await Post.findOne({ _id: id });
+
+		if (!post) {
+			return res.status(401).json({ msg: "The post doesn't exist." });
+		}
+
+		// provjera ima li korisnik prava za izbrisati post
+		if (post.user.toString() !== req.currentUser.userID)
+			return res
+				.status(401)
+				.json({ msg: "You can't delete someone else's post." });
+
+		// brisanje posta iz baze
+		await post.remove();
+
+		res.json({ msg: "Post deleted." });
+	} catch (error) {
+		res.status(500).send("Server Error");
+	}
+});
+
 app.listen(port, () => console.log(`Slušam na portu ${port}`));
