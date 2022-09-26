@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 // funckija koja povezuje backend i bazu
+// mongoos link: https://mongoosejs.com/
 const dbConnect = async () => {
 	try {
 		await mongoose.connect(process.env.MONGO_URI, {
