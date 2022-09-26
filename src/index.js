@@ -14,6 +14,8 @@ const app = express();
 
 // cors omogućuje pozive prema backend-u s bilo koje IP adrese klijenta
 app.use(cors());
+
+// korištenje json-a u request i response objektima
 app.use(express.json());
 
 // spajanje na bazu
@@ -76,6 +78,45 @@ app.post("/user", async (req, res) => {
 	} catch (error) {
 		res.status(500).send("Server Error");
 		console.log(error.message);
+	}
+});
+
+app.post("/auth", async (req, res) => {
+	const { email, password } = req.body;
+
+	//provjera podataka s frontend-a
+
+	if (!email || !password) {
+		return res.status(400).json({ msg: "All fields are required." });
+	}
+
+	try {
+		// pronalazak korisnika s dobivenim email-om
+		const user = await User.findOne({ email });
+
+		if (!user) {
+			return res.status(400).json({ msg: "Invalid credentials." });
+		}
+
+		// provjera točnosti lozinke
+		const passwordMatch = await bcrypt.compare(password, user.passwordHash);
+
+		if (!passwordMatch) {
+			return res.status(400).json({ msg: "Invalid credentials." });
+		}
+
+		const payload = {
+			userID: user._id,
+		};
+
+		const token = jwt.sign(payload, process.env.JWT_SECRET, {
+			algorithm: "HS512",
+			expiresIn: "7d",
+		});
+		res.json({ token });
+	} catch (error) {
+		console.log(error);
+		res.status(500).send("Server Error");
 	}
 });
 
