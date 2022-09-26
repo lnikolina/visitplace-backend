@@ -2,6 +2,10 @@ import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
 import dbConnect from "./config/db";
+import * as EmailValidator from "email-validator";
+import User from "./models/User";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
 
 // pronadi .env file ako postoji
 dotenv.config();
@@ -10,6 +14,7 @@ const app = express();
 
 // cors omogućuje pozive prema backend-u s bilo koje IP adrese klijenta
 app.use(cors());
+app.use(express.json());
 
 // spajanje na bazu
 dbConnect();
@@ -17,9 +22,61 @@ dbConnect();
 // uzimanje porta iz varijabli okruženja ( .env file )
 const port = process.env.PORT || 3000;
 
-// test ruta
-app.get("/", (req, res) => {
-	return res.send("<h1>Hello world</h1>");
+// ruta za registraciju korisnika
+app.post("/user", async (req, res) => {
+	const { firstName, lastName, email, password } = req.body;
+
+	// provjera podataka sa frontend-a
+	if (!firstName || !lastName || !email || !password) {
+		return res.status(400).json({ msg: "All fields are required." });
+	}
+
+	const validEmail = EmailValidator.validate(email);
+
+	// validacija emaila
+	if (!validEmail) {
+		return res.status(400).json({ msg: "Email must be valid." });
+	}
+
+	// potvrđivanje da korisnik sa istim e-mailom već ne postoji
+	const existingUser = await User.findOne({ email: email });
+
+	if (existingUser) {
+		return res.status(400).json({ msg: "Email already in use." });
+	}
+
+	// generiranje soli za hashiranje
+	const salt = await bcrypt.genSalt(10);
+
+	// hashiranje lozinke
+	const passwordHash = await bcrypt.hash(password, salt);
+
+	try {
+		// kreacija novog korisnika u bazi
+		const newUser = new User({
+			email: email,
+			firstName: firstName,
+			lastName: lastName,
+			passwordHash: passwordHash,
+		});
+
+		// spremanje novog korisnika u bazu
+		await newUser.save();
+
+		// priprema podatak koji će biti spremljeni u tokenu
+		const payload = {
+			userID: newUser._id,
+		};
+		// potpisani token
+		const token = jwt.sign(payload, process.env.JWT_SECRET, {
+			algorithm: "HS512",
+			expiresIn: "7d",
+		});
+		res.json({ token });
+	} catch (error) {
+		res.status(500).send("Server Error");
+		console.log(error.message);
+	}
 });
 
 app.listen(port, () => console.log(`Slušam na portu ${port}`));
