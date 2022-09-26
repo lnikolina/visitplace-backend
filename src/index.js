@@ -7,6 +7,7 @@ import User from "./models/User";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import verify from "./middleware/verify";
+import Post from "./models/Post";
 
 // pronadi .env file ako postoji
 dotenv.config();
@@ -124,6 +125,30 @@ app.get("/user", verify, async (req, res) => {
 		// hvatanje podataka trenutnog korisnika
 		const user = await User.findById(req.currentUser.userID);
 		res.json(user);
+	} catch (error) {
+		res.status(500).json({ msg: "Server Error" });
+	}
+});
+
+app.post("/posts", verify, async (req, res) => {
+	const { location, photoURL } = req.body;
+
+	// provjera podataka sa frontend-a
+	if (!location || !photoURL) {
+		return res.status(400).json({ msg: "All fields are required." });
+	}
+	try {
+		// kreacija novog posta
+		const newPost = new Post({
+			location: location,
+			photoURL: photoURL,
+			user: req.currentUser.userID,
+		});
+
+		// spremanje novog posta u bazu
+		await newPost.save();
+
+		res.json(newPost);
 	} catch (error) {
 		res.status(500).json({ msg: "Server Error" });
 	}
