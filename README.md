@@ -1,4 +1,4 @@
-# visitplace - backend web application
+# VisitPlace - backend web application
 
 Frontend: https://github.com/lnikolina/visitplace-frontend.git
 
