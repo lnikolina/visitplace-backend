@@ -1,13 +1,13 @@
 import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
-import dbConnect from "./config/db";
+import dbConnect from "./config/db.js";
 import * as EmailValidator from "email-validator";
-import User from "./models/User";
+import User from "./models/User.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import verify from "./middleware/verify";
-import Post from "./models/Post";
+import verify from "./middleware/verify.js";
+import Post from "./models/Post.js";
 
 // pronadi .env file ako postoji
 dotenv.config();
@@ -156,7 +156,7 @@ app.post("/posts", verify, async (req, res) => {
 
 app.get("/posts", verify, async (req, res) => {
 	try {
-		const posts = await Post.find({});
+		const posts = await Post.find({}).populate("user");
 
 		res.json(posts);
 	} catch (error) {
@@ -166,7 +166,9 @@ app.get("/posts", verify, async (req, res) => {
 
 app.get("/posts/me", verify, async (req, res) => {
 	try {
-		const posts = await Post.find({ user: req.currentUser.userID });
+		const posts = await Post.find({ user: req.currentUser.userID }).populate(
+			"user"
+		);
 
 		res.json(posts);
 	} catch (error) {
